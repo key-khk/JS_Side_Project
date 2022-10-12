@@ -61,13 +61,14 @@
   </div>
   <script>
     let numOne = '';
-    let operator = '';
+    let prevOperator = '';
+    let currOperator = '';
     let numTwo = '';
     const $operator = document.querySelector('#operator');
     const $result = document.querySelector('#result');
 
     const onClickNumber = (event) => {
-      if (!operator) {
+      if (!currOperator) {
         numOne += event.target.textContent;
         $result.value += event.target.textContent;
         return;
@@ -80,13 +81,34 @@
       $result.value += event.target.textContent;
     }
 
+    const onKeyDownNumber = (num) => {
+      if (!currOperator) {
+        numOne += num;
+        $result.value += num;
+        return;
+      }
+
+      if (!numTwo) {
+        $result.value = '';
+      }
+      numTwo += num;
+      $result.value += num;
+    }
+
+
     for (let i = 0; i < 10; i++) {
       document.querySelector('#num-' + i).addEventListener('click', onClickNumber);
     }
 
     const onClickOperator = (op) => () => {
       if (numOne) {
-        operator = op;
+        if (numTwo) {
+          prevOperator = currOperator;
+          currOperator = op;
+        } else {
+          currOperator = op;
+        }
+        
         $operator.value = op;
       } else {
         alert('숫자를 먼저 입력하세요.');
@@ -116,16 +138,54 @@
       }
     });
 
+
+
     document.querySelector('#clear').addEventListener('click', () => {
       numOne = '';
-      operator = '';
+      currOperator = '';
+      prevOperator = '';
       numTwo = '';
       $operator.value = '';
       $result.value = '';
     });
 
+    document.addEventListener('keydown', (event) => {
+      // console.log(event);
+      let keyNum = isNaN(parseInt(event.key)) ? -1 : parseInt(event.key);
+      if (keyNum >= 0 && keyNum < 10) {
+        onKeyDownNumber(event.key);
+      } else {
+        switch (event.key) {
+          case '+':
+            $result.value = parseInt(numOne) + parseInt(numTwo);
+            break;
+          case '-':
+            $result.value = numOne - numTwo;
+            break;
+          case '*':
+            $result.value = numOne * numTwo;
+            break;
+          case '/':
+            $result.value = numOne / numTwo;
+            break;
+          case '=':
+          case 'Enter':
+            break;
+          case 'Escape':
+            break;
+          
+          default:
+            break;
+        }
+      }
+    })
+
     function calculateButton(type, opType) {
-      switch (operator) {
+      let tmpOperator = currOperator;
+      if (type == 'op') {
+        tmpOperator = prevOperator;
+      }
+      switch (tmpOperator) {
         case '+':
           $result.value = parseInt(numOne) + parseInt(numTwo);
           break;
@@ -144,15 +204,19 @@
 
       $operator.value = '';
       numOne = $result.value;
-      operator = '';
       numTwo = '';
 
-      if (type) {
-        if (numOne) {
-          operator = opType;
-          $operator.value = opType;
-        }
+      if (type == 'calc') {
+        currOperator = '';
+      } else {
+        prevOperator = currOperator;
+      }
+
+      if (numOne) {
+        currOperator = opType;
+        $operator.value = opType;
       }
     }
+
   </script>
 </body>
